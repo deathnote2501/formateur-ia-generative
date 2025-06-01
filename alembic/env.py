@@ -19,7 +19,7 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from app.core.models import Base  # Add this line
+from app.core.models import Base, User, Course, Slide  # Ensure models are loaded
 target_metadata = Base.metadata  # Modify this line
 
 # other values from the config, defined by the needs of env.py,
