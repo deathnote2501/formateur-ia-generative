@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "my-project" # Or a more suitable name
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"] # Or more suitable authors
+
+[tool.poetry.dependencies]
+python = "^3.9" # Or a more suitable Python version
+fastapi = "^0.100.0" # Or a more suitable FastAPI version
+uvicorn = "^0.23.2" # Or a more suitable Uvicorn version
+sqlalchemy = "^2.0.0" # Or a more suitable SQLAlchemy version
+psycopg2-binary = "^2.9.0" # For PostgreSQL, if needed directly, otherwise asyncpg for async
+fastapi-users = {extras = ["sqlalchemy"], version = "^12.1.2"} # Or a more suitable version
+alembic = "^1.13.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
