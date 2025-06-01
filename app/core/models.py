@@ -28,8 +28,6 @@ class UserUpdate(UserBase): # UserUpdate was already here
     password: Optional[str] = None
     is_active: Optional[bool] = None
     is_superuser: Optional[bool] = None
-    # No Config with orm_mode here, typically not needed for update schemas unless they are also returned.
-    # Adding it for consistency as per subtask description for other update schemas.
     class Config:
         orm_mode = True
 
@@ -47,7 +45,7 @@ class CourseRead(CourseBase):
     class Config:
         orm_mode = True
 
-class CourseUpdate(CourseBase): # New, inheriting from CourseBase
+class CourseUpdate(CourseBase):
     title: Optional[str] = None
     description: Optional[str] = None
 
@@ -58,10 +56,10 @@ class CourseUpdate(CourseBase): # New, inheriting from CourseBase
 class SlideBase(BaseModel):
     course_id: int
     order_index: int
-    template_type: str  # (ex: 'title', 'menu', 'content')
-    content_json: dict # For Pydantic, dict is fine
+    template_type: str
+    content_json: dict
     specific_prompt: Optional[str] = None
-    suggested_messages_json: Optional[List[str]] = None # For Pydantic, List[str] is fine
+    suggested_messages_json: Optional[List[str]] = None
 
 class SlideCreate(SlideBase):
     pass
@@ -72,7 +70,7 @@ class SlideRead(SlideBase):
     class Config:
         orm_mode = True
 
-class SlideUpdate(SlideBase): # New, inheriting from SlideBase
+class SlideUpdate(SlideBase):
     course_id: Optional[int] = None
     order_index: Optional[int] = None
     template_type: Optional[str] = None
@@ -82,6 +80,20 @@ class SlideUpdate(SlideBase): # New, inheriting from SlideBase
 
     class Config:
         orm_mode = True
+
+# Chat Schemas (New)
+class ChatHistoryItem(BaseModel):
+    role: str # Typically "user" or "model" (or "assistant")
+    content: str
+
+class ChatMessageInput(BaseModel):
+    message: str
+    slide_id: int # To associate chat with a specific slide context
+    history: Optional[List[ChatHistoryItem]] = None
+
+class ChatMessageOutput(BaseModel):
+    reply: str
+    suggested_messages: Optional[List[str]] = None
 
 
 # SQLAlchemy models
@@ -93,7 +105,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
-    is_verified = Column(Boolean, default=False, nullable=False) # Added for fastapi-users
+    is_verified = Column(Boolean, default=False, nullable=False)
 
 class Course(Base):
     __tablename__ = "courses"
@@ -111,8 +123,8 @@ class Slide(Base):
     course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
     order_index = Column(Integer, nullable=False)
     template_type = Column(String, nullable=False)
-    content_json = Column(JSONB, nullable=False) # Using JSONB for SQLAlchemy model
+    content_json = Column(JSONB, nullable=False)
     specific_prompt = Column(String, nullable=True)
-    suggested_messages_json = Column(JSONB, nullable=True) # Using JSONB for SQLAlchemy model
+    suggested_messages_json = Column(JSONB, nullable=True)
 
     course = relationship("Course", back_populates="slides")

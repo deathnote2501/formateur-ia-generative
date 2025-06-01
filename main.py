@@ -5,9 +5,10 @@ from app.core.db_users import auth_backend, get_user_manager
 from app.core.models import User, UserRead, UserCreate, UserUpdate
 from fastapi_users import FastAPIUsers
 
-# Import new routers for courses and slides
+# Import API endpoint routers
 from app.api.endpoints import courses as courses_router
 from app.api.endpoints import slides as slides_router
+from app.api.endpoints import chat as chat_router # New chat router import
 
 app = FastAPI(
     title="Formation Platform API",
@@ -56,10 +57,11 @@ app.include_router(
     tags=["users"],
 )
 
-# New API v1 router for courses and slides
+# New API v1 router for courses, slides, and chat
 api_router_v1 = APIRouter(prefix="/api/v1")
 api_router_v1.include_router(courses_router.router) # Will be /api/v1/courses
 api_router_v1.include_router(slides_router.router)
+api_router_v1.include_router(chat_router.router) # Will be /api/v1/chat
 # Slides router paths like /courses/{id}/slides/ will become /api/v1/courses/{id}/slides/
 # and /slides/{id} will become /api/v1/slides/{id}
 
