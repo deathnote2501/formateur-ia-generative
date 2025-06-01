@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, APIRouter # Added APIRouter
+from fastapi.middleware.cors import CORSMiddleware # New import for CORS
 
 from app.core.db_users import auth_backend, get_user_manager
 from app.core.models import User, UserRead, UserCreate, UserUpdate
@@ -14,6 +15,22 @@ app = FastAPI(
     version="0.1.0",
     # You can add more metadata here: openapi_url, docs_url, redoc_url, etc.
 )
+
+# CORS Middleware Configuration
+origins = [
+    "http://localhost:5173", # Default SvelteKit dev port
+    # "http://localhost:3000", // Example: if you use a different frontend port
+    # "https://your-deployed-frontend.com", // Example: deployed frontend
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"], # Allows all standard methods
+    allow_headers=["*"], # Allows all headers
+)
+
 
 # Initialize FastAPIUsers
 fastapi_users = FastAPIUsers[User, int](

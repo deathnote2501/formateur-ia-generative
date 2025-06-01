@@ -1,12 +1,13 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import { currentSlideData, isLoading, fetchSlide, type SlideData } from '$lib/stores/courseStore';
-  import SlideViewer from '$lib/components/slides/SlideViewer.svelte'; // New import
+  import SlideViewer from '$lib/components/slides/SlideViewer.svelte';
 
   let title = 'Chargement...';
 
-  $: if ($page.params.slideId) {
-    fetchSlide($page.params.slideId);
+  // Updated reactive statement for fetchSlide
+  $: if ($page.params.courseId && $page.params.slideId) {
+    fetchSlide($page.params.courseId, $page.params.slideId);
   }
 
   $: if ($currentSlideData?.content_json?.title) {
