@@ -1,43 +1,74 @@
-from fastapi import FastAPI, Depends # Added Depends
+from fastapi import FastAPI, Depends, APIRouter # Added APIRouter
 
-from app.core.db_users import auth_backend, get_user_manager # UserManager is not directly used here
-from app.core.models import User, UserRead, UserCreate, UserUpdate # User is SQLAlchemy model, others Pydantic
+from app.core.db_users import auth_backend, get_user_manager
+from app.core.models import User, UserRead, UserCreate, UserUpdate
 from fastapi_users import FastAPIUsers
 
-app = FastAPI()
+# Import new routers for courses and slides
+from app.api.endpoints import courses as courses_router
+from app.api.endpoints import slides as slides_router
+
+app = FastAPI(
+    title="Formation Platform API",
+    description="API for managing courses, slides, and user interactions.",
+    version="0.1.0",
+    # You can add more metadata here: openapi_url, docs_url, redoc_url, etc.
+)
 
 # Initialize FastAPIUsers
-fastapi_users = FastAPIUsers[User, int]( # User is SQLAlchemy model, int is the ID type
+fastapi_users = FastAPIUsers[User, int](
     get_user_manager,
     [auth_backend],
 )
 
-# Auth routes
+# Auth routes (from fastapi-users)
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
     prefix="/auth/jwt",
     tags=["auth"],
 )
-# Register routes
 app.include_router(
-    fastapi_users.get_register_router(UserRead, UserCreate), # UserRead is response, UserCreate is request
+    fastapi_users.get_register_router(UserRead, UserCreate),
     prefix="/auth",
     tags=["auth"],
 )
-# Users routes - get_users_router now takes requires_verification directly
+# Users routes (from fastapi-users)
 app.include_router(
-    fastapi_users.get_users_router(UserRead, UserUpdate, requires_verification=True),
+    fastapi_users.get_users_router(UserRead, UserUpdate, requires_verification=True), # requires_verification can be True or False based on your needs
     prefix="/users",
     tags=["users"],
 )
 
-# The dependency for current active verified user
-current_active_verified_user = fastapi_users.current_user(active=True, verified=True)
+# New API v1 router for courses and slides
+api_router_v1 = APIRouter(prefix="/api/v1")
+api_router_v1.include_router(courses_router.router) # Will be /api/v1/courses
+api_router_v1.include_router(slides_router.router)
+# Slides router paths like /courses/{id}/slides/ will become /api/v1/courses/{id}/slides/
+# and /slides/{id} will become /api/v1/slides/{id}
 
-@app.get("/ping")
+app.include_router(api_router_v1)
+
+
+# Root/utility endpoints
+@app.get("/ping", tags=["Utilities"])
 async def ping():
+    """A simple ping endpoint to check if the API is responsive."""
     return {"ping": "pong"}
 
-@app.get("/protected-route")
+# Protected route example (can be moved or expanded)
+current_active_verified_user = fastapi_users.current_user(active=True, verified=True) # Assuming verified is desired
+@app.get("/protected-route", tags=["Tests"])
 async def protected_route(user: User = Depends(current_active_verified_user)):
+    """A protected route that requires an active and verified user."""
     return {"message": f"Hello {user.email}, you are on a protected route!"}
+
+# Optional: Add startup/shutdown events, middleware, etc.
+# @app.on_event("startup")
+# async def on_startup():
+#     # Initialize database, etc.
+#     pass
+
+# @app.on_event("shutdown")
+# async def on_shutdown():
+#     # Clean up resources
+#     pass
