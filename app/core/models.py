@@ -1,14 +1,12 @@
-from typing import Optional, List
+from typing import List, Optional
+
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, JSON # Added JSON
-from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import JSONB # For PostgreSQL specific JSON type
-# We won't define SQLAlchemy models yet, but we need Base for Alembic
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text  # Assuming Text for content_json and specific_prompt
 
 Base = declarative_base()
 
-# Pydantic models
+# Pydantic Models
 class UserBase(BaseModel):
     email: EmailStr
     is_active: bool = True
@@ -21,16 +19,7 @@ class UserRead(UserBase):
     id: int
 
     class Config:
-        orm_mode = True # Renamed from from_attributes for Pydantic v2
-
-class UserUpdate(UserBase): # UserUpdate was already here
-    email: Optional[EmailStr] = None
-    password: Optional[str] = None
-    is_active: Optional[bool] = None
-    is_superuser: Optional[bool] = None
-    class Config:
         orm_mode = True
-
 
 class CourseBase(BaseModel):
     title: str
@@ -45,21 +34,13 @@ class CourseRead(CourseBase):
     class Config:
         orm_mode = True
 
-class CourseUpdate(CourseBase):
-    title: Optional[str] = None
-    description: Optional[str] = None
-
-    class Config:
-        orm_mode = True
-
-
 class SlideBase(BaseModel):
     course_id: int
     order_index: int
-    template_type: str
-    content_json: dict
+    template_type: str  # ex: 'title', 'menu', 'content'
+    content_json: dict  # For flexibility, using dict. Could be pydantic model too.
     specific_prompt: Optional[str] = None
-    suggested_messages_json: Optional[List[str]] = None
+    suggested_messages_json: Optional[List[str]] = None # Storing as list of strings
 
 class SlideCreate(SlideBase):
     pass
@@ -70,61 +51,28 @@ class SlideRead(SlideBase):
     class Config:
         orm_mode = True
 
-class SlideUpdate(SlideBase):
-    course_id: Optional[int] = None
-    order_index: Optional[int] = None
-    template_type: Optional[str] = None
-    content_json: Optional[dict] = None
-    specific_prompt: Optional[str] = None
-    suggested_messages_json: Optional[List[str]] = None
+# SQLAlchemy Models (Example structure, will need to be defined if using Alembic for these)
+# For now, only Base is critical for Alembic configuration in env.py
+# class User(Base):
+#     __tablename__ = "users"
+#     id = Column(Integer, primary_key=True, index=True)
+#     email = Column(String, unique=True, index=True, nullable=False)
+#     hashed_password = Column(String, nullable=False)
+#     is_active = Column(Boolean, default=True)
+#     is_superuser = Column(Boolean, default=False)
 
-    class Config:
-        orm_mode = True
+# class Course(Base):
+#     __tablename__ = "courses"
+#     id = Column(Integer, primary_key=True, index=True)
+#     title = Column(String, index=True, nullable=False)
+#     description = Column(String, nullable=True)
 
-# Chat Schemas (New)
-class ChatHistoryItem(BaseModel):
-    role: str # Typically "user" or "model" (or "assistant")
-    content: str
-
-class ChatMessageInput(BaseModel):
-    message: str
-    slide_id: int # To associate chat with a specific slide context
-    history: Optional[List[ChatHistoryItem]] = None
-
-class ChatMessageOutput(BaseModel):
-    reply: str
-    suggested_messages: Optional[List[str]] = None
-
-
-# SQLAlchemy models
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    is_active = Column(Boolean, default=True, nullable=False)
-    is_superuser = Column(Boolean, default=False, nullable=False)
-    is_verified = Column(Boolean, default=False, nullable=False)
-
-class Course(Base):
-    __tablename__ = "courses"
-
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, index=True, nullable=False)
-    description = Column(String, nullable=True)
-
-    slides = relationship("Slide", back_populates="course")
-
-class Slide(Base):
-    __tablename__ = "slides"
-
-    id = Column(Integer, primary_key=True, index=True)
-    course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
-    order_index = Column(Integer, nullable=False)
-    template_type = Column(String, nullable=False)
-    content_json = Column(JSONB, nullable=False)
-    specific_prompt = Column(String, nullable=True)
-    suggested_messages_json = Column(JSONB, nullable=True)
-
-    course = relationship("Course", back_populates="slides")
+# class Slide(Base):
+#     __tablename__ = "slides"
+#     id = Column(Integer, primary_key=True, index=True)
+#     course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
+#     order_index = Column(Integer, nullable=False)
+#     template_type = Column(String, nullable=False)
+#     content_json = Column(Text, nullable=False) # Using Text to store JSON string
+#     specific_prompt = Column(Text, nullable=True)
+#     suggested_messages_json = Column(Text, nullable=True) # Using Text to store JSON string of list

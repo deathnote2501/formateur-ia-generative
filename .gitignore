@@ -15,7 +15,7 @@ downloads/
 eggs/
 .eggs/
 lib/
-lib64/
+lib60/
 parts/
 sdist/
 var/
@@ -28,8 +28,8 @@ share/python-wheels/
 MANIFEST
 
 # PyInstaller
-# Usually these files are written by a script, but it is better to
-# put them in .gitignore to avoid committing them accidentally.
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
 
@@ -50,11 +50,11 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
+pytestdebug.log
 
 # Translations
 *.mo
 *.pot
-*.po
 
 # Django stuff:
 *.log
@@ -86,18 +86,14 @@ ipython_config.py
 .python-version
 
 # pipenv
-# According to Python official guidance, Pipfile.lock should not be ignored
+#   According to Pypa Pipenv Subproject team, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if having platform-specific dependencies or dependencies
+#   having different versions across platforms is not desired, Pipfile.lock should be .gitignored.
+#   See discussion: https://github.com/pypa/pipenv/issues/1995#issuecomment-376370702
 # Pipfile.lock
 
-# PEP 582; __pypackages__ directory
+# PEP 582; __pypackages__ directory specified by PEP 582 is the recommended way here
 __pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
 
 # Environments
 .env
@@ -126,5 +122,12 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Poetry
+# poetry
 poetry.lock
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
